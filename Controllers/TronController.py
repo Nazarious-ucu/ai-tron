@@ -23,16 +23,12 @@ class TronController:
 
         while not self.done:
             self.obs, reward, self.done, truncated, _ = self.env.step(self.direction)
-
             self.env.render()
 
             if self.done or truncated:
                 print(f"Game over! Reward = {reward}")
                 break
-
             await asyncio.sleep(self.step_interval)
-
-        self.env.close()
 
     async def event_loop(self):
         while not self.done:
@@ -64,5 +60,7 @@ if __name__ == "__main__":
             controller.run_game_loop(),
             controller.event_loop()
         )
+        env.close()
+
 
     asyncio.run(main())
