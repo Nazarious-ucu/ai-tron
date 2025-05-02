@@ -1,0 +1,11 @@
+﻿trash: ''
+width: 20
+height: 20
+cell_size: 20
+tail_length: 15
+reward_for_step: 1
+penalty_for_death: 100
+lose_by_enemy: 50
+enemy_kill_reward: 3
+enemy_count: 1
+enemy_behavior: random
