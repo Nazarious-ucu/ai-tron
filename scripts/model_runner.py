@@ -17,21 +17,24 @@ def make_env():
 vec_env = DummyVecEnv([make_env])
 
 
-model = PPO.load("tron_ppo_model5.zip", env=vec_env)
+model = PPO.load("tron_ppo_model6.zip   ", env=vec_env)
 
 obs = vec_env.reset()
 # print(obs)
+total_reward = 0
 for i in range(2000):
 
     action, _states = model.predict(obs)
     obs, rewards, dones, infos = vec_env.step(action)
     vec_env.envs[0].render(dones[0])
-    time.sleep(0.1)
-    # print(rewards)
+    total_reward += rewards[0]
+    # print("Total reward: ", )
+    time.sleep(0.05)
 
     # if (rewards[0] > 0):
     #     print("Reward: ", rewards[0])
 
     if dones[0]:
         obs = vec_env.reset()
-        print("End: ", rewards)
+        print("End: ", total_reward)
+        total_reward = 0

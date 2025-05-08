@@ -36,11 +36,13 @@ class TronBaseEnv(BaseTronEnv):
         return self.field.state, {}
 
     def step(self, action):
+        step_reward = 0
         old_y, old_x = self.agent_pos.y, self.agent_pos.x
         done_game = False
 
         self.tail.append(Position(x=old_x, y=old_y))
         self.reward += self.reward_for_step
+        step_reward += self.reward_for_step
         # print("action: ",action, type(action))
         # self.field.update_cell(old_x, old_y, 0)
 
@@ -70,12 +72,13 @@ class TronBaseEnv(BaseTronEnv):
             self.field.state[self.agent_pos.y, self.agent_pos.x] == 2):
             done_game = True
             self.reward -= self.penalty_for_death
-            # print("you killed by wall")
+            step_reward -= self.penalty_for_death
 
 
         elif self.field.state[self.agent_pos.y, self.agent_pos.x] == 3:
             done_game = True
             self.reward -= self.lose_by_enemy
+            step_reward -= self.lose_by_enemy
             # print("you killed by enemy")
 
         else :
@@ -86,18 +89,11 @@ class TronBaseEnv(BaseTronEnv):
 
         self.steps += 1
 
-        # if self.steps % 50 == 0:
-        #     self.reward += 10
-
-        # if self.steps % 200 == 0:
-        #     self.reward += 100
-
-
         self.dirty_rects.append((old_y, old_x))
         self.dirty_rects.append((self.agent_pos.y, self.agent_pos.x))
 
         truncated = False
-        return self.field.state, self.reward, done_game, truncated, {}
+        return self.field.state, step_reward, done_game, truncated, {}
 
     def render(self, done = False):
         if self.screen is None:

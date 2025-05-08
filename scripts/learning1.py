@@ -38,5 +38,5 @@ if __name__ == "__main__":
         device="cpu"  # since you’re on CPU
     )
 
-    model.learn(total_timesteps=1000000)
-    model.save("tron_ppo_model5")
+    model.learn(total_timesteps=300000)
+    model.save("tron_ppo_model6")

@@ -3,7 +3,19 @@ import pygame
 from envs import TronBaseEnv
 from envs.Enemies.safe_random_enemy import SafeRandomEnemy
 from envs.Enteties.position import Position
+import math
 
+def point_in_poly(x, y, poly):
+    # простий ray-casting алгоритм
+    inside = False
+    n = len(poly)
+    for i in range(n):
+        x0, y0 = poly[i]
+        x1, y1 = poly[(i+1)%n]
+        # перевірка, чи перетинає горизонтальна лінія
+        if ((y0 > y) != (y1 > y)) and (x < (x1-x0)*(y-y0)/(y1-y0) + x0):
+            inside = not inside
+    return inside
 
 class TronEnvWithEnemy(TronBaseEnv):
     def __init__(self, config):
@@ -11,21 +23,36 @@ class TronEnvWithEnemy(TronBaseEnv):
         self.enemy = SafeRandomEnemy(Position(self.width // 4, self.height // 4), field=self.field)
         self.enemy_kill_reward = config["enemy_kill_reward"]
         self.enemy_tail = []
+        self.prev_angle = None
+        self.angle_accum = 0.0
+        self.step_closer_to_enemy_reward = config["step_closer_to_enemy_reward"]
+        self.step_further_from_enemy_penalty = config["step_further_from_enemy_penalty"]
+
 
     def reset(self, seed=None, options=None):
         super().reset()
         self.enemy_tail = []
         self.enemy = SafeRandomEnemy(Position(self.width // 4, self.height // 4), field=self.field, )
         self.reward = 0
+        self.prev_angle = None
+        self.angle_accum = 0.0
 
         return self.field.state, {}
 
 
     def step(self, action):
-        self.field.state, self.reward, done, truncated, info = super().step(action)
+        old_dist = abs(self.agent_pos.x - self.enemy.pos.x) + abs(self.agent_pos.y - self.enemy.pos.y)
+
+        self.field.state, step_reward, done, truncated, info = super().step(action)
         if done or (type(action) != int and type(action) != np.int64):
-            return self.field.state, self.reward, done, truncated, info
-        # print(len(self.tail), self.tail)
+            return self.field.state, step_reward, done, truncated, info
+
+        new_dist = abs(self.agent_pos.x - self.enemy.pos.x) + abs(self.agent_pos.y - self.enemy.pos.y)
+
+        if new_dist < old_dist and not done:
+            step_reward += self.step_closer_to_enemy_reward
+        elif new_dist > old_dist and not done:
+            step_reward -= self.step_further_from_enemy_penalty
 
         enemy_move = self.enemy.move()
         old_enemy_pos = Position(self.enemy.pos.x, self.enemy.pos.y)
@@ -64,12 +91,19 @@ class TronEnvWithEnemy(TronBaseEnv):
 
         elif (self.field.state[self.enemy.pos.y, self.enemy.pos.x] == 2 or
              self.field.state[self.enemy.pos.y, self.enemy.pos.x] == 1):
-            self.reward *= self.enemy_kill_reward
+            self.reward += self.enemy_kill_reward
+            step_reward += self.enemy_kill_reward
             done = True
-            #print("you kill enemy")
 
-            # print(self.field.state)
+        poly = [(self.agent_pos.x, self.agent_pos.y)]
 
+        for pos in self.tail[:-1]:
+            poly.append((pos.x, pos.y))
+
+        ex, ey = self.enemy.pos.x, self.enemy.pos.y
+        if point_in_poly(ex, ey, poly):
+            step_reward += 1.0
+            info['surrounded_enemy'] = True
 
         if not done:
             if not enemy_killed:
@@ -79,7 +113,7 @@ class TronEnvWithEnemy(TronBaseEnv):
             self.field.update_cell(self.enemy.pos.x, self.enemy.pos.y, 3)
             self.dirty_rects.append((self.enemy.pos.y, self.enemy.pos.x))
 
-        return self.field.state, self.reward, done, truncated, info
+        return self.field.state, step_reward, done, truncated, info
 
 
 if __name__ == "__main__":
