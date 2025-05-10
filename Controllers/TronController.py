@@ -26,7 +26,6 @@ class TronController:
             self.env.render()
 
             if self.done or truncated:
-                # print(f"Game over! Reward = {reward}")
                 break
             await asyncio.sleep(self.step_interval)
 

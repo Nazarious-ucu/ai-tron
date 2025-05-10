@@ -11,7 +11,6 @@ class SafeRandomEnemy:
         possible_moves = [0, 1, 2, 3]  # up, right, down, left
         safe_moves = []
 
-        # Перевіряємо, які ходи безпечні
         for move in possible_moves:
             new_x, new_y = self.pos.x, self.pos.y
             if move == 0:
@@ -25,7 +24,7 @@ class SafeRandomEnemy:
 
             if 0 <= new_x < self.field.width and 0 <= new_y < self.field.height:
                 cell_value = self.field.state[new_y, new_x]
-                if cell_value not in [self.wall_value, 3]:
+                if cell_value not in [self.wall_value, 4]:
                     safe_moves.append(move)
 
         if not safe_moves:

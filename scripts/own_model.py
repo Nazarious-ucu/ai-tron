@@ -1,6 +1,4 @@
-﻿# tron_algorithms.py
-# Два базові алгоритми на вибір: REINFORCE або DQN для Tron
-
+﻿
 import argparse
 import torch
 import torch.nn as nn
@@ -11,19 +9,16 @@ from collections import deque
 import yaml
 from envs.tron_three_level_env import TronBaseEnvMultiChannel
 
-# Завантаження конфігурації
 with open("../configs/field_settings.yaml") as f:
     config = yaml.safe_load(f)
 
 env = TronBaseEnvMultiChannel(config)
-obs_shape = env.observation_space.shape  # (H, W, C)
+obs_shape = env.observation_space.shape
 n_actions = env.action_space.n
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ---------------------------------
-# 1) REINFORCE-агент (MC Policy Gradient)
-# ---------------------------------
+
 class PolicyNet(nn.Module):
     def __init__(self, in_shape, n_actions):
         super().__init__()
@@ -65,9 +60,6 @@ class REINFORCEAgent:
         self.optimizer.step()
         return loss.item()
 
-# ---------------------------------
-# 2) DQN-агент (Deep Q-Network)
-# ---------------------------------
 class QNet(nn.Module):
     def __init__(self, in_shape, n_actions):
         super().__init__()
@@ -128,9 +120,7 @@ class DQNAgent:
             self.target_net.load_state_dict(self.q_net.state_dict())
         return loss.item()
 
-# ---------------------------------
-# 3) Основний тренувальний функціонал
-# ---------------------------------
+
 def train(agent_type, episodes=500):
     if agent_type == 'reinforce':
         agent = REINFORCEAgent()
@@ -168,7 +158,6 @@ def train(agent_type, episodes=500):
 
         print(f"Episode {ep} [{agent_type}]: Reward={total_reward:.2f}, Loss={loss:.4f}, Eps={eps:.3f}")
 
-    # Зберігаємо ваги
     if agent_type == 'reinforce':
         torch.save(agent.policy.state_dict(), "reinforce_policy.pth")
     else:

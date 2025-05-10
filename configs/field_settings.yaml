@@ -3,11 +3,11 @@ width: 20
 height: 20
 cell_size: 20
 tail_length: 15
-reward_for_step: 1
-penalty_for_death: 100
-lose_by_enemy: 100
-enemy_kill_reward: 100
+reward_for_step: -0.01
+penalty_for_death: 4
+lose_by_enemy: 1
+enemy_kill_reward: 5
 enemy_count: 1
 enemy_behavior: random
-step_closer_to_enemy_reward: 0.1
-step_further_from_enemy_penalty: 0.05
+step_closer_to_enemy_reward: 0.3
+step_further_from_enemy_penalty: 0.1

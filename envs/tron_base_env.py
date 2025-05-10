@@ -25,7 +25,7 @@ class TronBaseEnv(BaseTronEnv):
     def reset(self, seed=None, options=None):
         super().reset()
 
-        self.agent_pos = Position(self.height // 2, self.width // 2)
+        self.agent_pos = Position(self.height * 3//4, self.width * 3//4)
         self.field.update_cell(self.agent_pos.x, self.agent_pos.y, 1)
 
         self.tail = []
@@ -43,8 +43,6 @@ class TronBaseEnv(BaseTronEnv):
         self.tail.append(Position(x=old_x, y=old_y))
         self.reward += self.reward_for_step
         step_reward += self.reward_for_step
-        # print("action: ",action, type(action))
-        # self.field.update_cell(old_x, old_y, 0)
 
         if len(self.tail) > self.tail_length:
             tail_end = self.tail.pop(0)
@@ -73,9 +71,10 @@ class TronBaseEnv(BaseTronEnv):
             done_game = True
             self.reward -= self.penalty_for_death
             step_reward -= self.penalty_for_death
+            # print("you die")
 
 
-        elif self.field.state[self.agent_pos.y, self.agent_pos.x] == 3:
+        elif self.field.state[self.agent_pos.y, self.agent_pos.x] == 3 or self.field.state[self.agent_pos.y, self.agent_pos.x] == 4:
             done_game = True
             self.reward -= self.lose_by_enemy
             step_reward -= self.lose_by_enemy
@@ -126,6 +125,8 @@ class TronBaseEnv(BaseTronEnv):
                     color = (0, 100, 255)
                 elif cell_value == 3:
                     color = (0, 0, 255)
+                elif cell_value == 4:
+                    color = (255, 0, 0)
                 else:
                     color = (50, 50, 50)
 
@@ -141,8 +142,6 @@ class TronBaseEnv(BaseTronEnv):
             pygame.display.update(rect_list)
 
         self.dirty_rects.clear()
-
-        # self.clock.tick(10)
 
     def close(self):
         if self.screen is not None:
@@ -171,9 +170,9 @@ if __name__ == "__main__":
                 if event.key == pygame.K_UP:
                     action = 0
                 elif event.key == pygame.K_DOWN:
-                    action = 2  # down
+                    action = 2
                 elif event.key == pygame.K_LEFT:
-                    action = 3  # left
+                    action = 3
                 elif event.key == pygame.K_RIGHT:
                     action = 1
                 elif event.key == pygame.K_ESCAPE:
@@ -181,7 +180,6 @@ if __name__ == "__main__":
 
 
             obs, reward, done, truncated, info = env.step(action)
-            # print("reward:", reward)
             env.render()
         if done:
             env.reset()
